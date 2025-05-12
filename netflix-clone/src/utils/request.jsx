@@ -1,6 +1,5 @@
 import React from "react";
-import dotenv from 'dotenv';
-dotenv.config();
+
 
 // // src/api/requests.js
 const API_KEY = import.meta.env.VITE_API_KEY;
