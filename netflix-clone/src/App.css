@@ -1,16 +1,33 @@
-*{
-    margin: 0;
-    padding:0
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
-body{
-    
-}
-h1{
-    width: 980px;
-    margin: 50px auto;
-    /* margin-left: auto;
-    margin-right: auto; */
-    background-color: aquamarine;
-    text-align: center;
 
+/* Import Font */
+@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap");
+
+/* CSS Variables */
+:root {
+  --font-base: "Lexend", sans-serif;
+  --font-siz: 12px;
+  --bg-color: #111;
+  --primary-color: #fff;
+  --secondary-color: #e50914;
+}
+
+/* Global Body Styles */
+body {
+  background-color: var(--bg-color);
+  font-family: var(--font-base);
+  font-size: calc(var(--font-siz) * 0.85);
+  color: var(--primary-color);
+}
+
+/* Heading Example */
+h1 {
+  width: 980px;
+  margin: 50px auto;
+  text-align: center;
 }

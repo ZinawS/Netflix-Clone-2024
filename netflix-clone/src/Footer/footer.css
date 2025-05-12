@@ -1,0 +1,91 @@
+/* ========== Root Variables ========== */
+:root {
+  --netflix-black: #141414;
+  --netflix-white: #ffffff;
+  --netflix-gray: #999;
+  --netflix-red: #e50914;
+  --footer-font-size: 0.85rem;
+}
+
+/* ========== Outer Container ========== */
+.footer-outer-container {
+  background-color: var(--netflix-black);
+  color: var(--netflix-gray);
+  padding: 2rem 4%;
+  font-size: var(--footer-font-size);
+  border-top: 1px solid #333;
+}
+
+/* ========== Inner Layout ========== */
+.footer-inner-container {
+  max-width: 1200px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ========== Social Media Icons ========== */
+.footer-icon ul {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+  padding-left: 0;
+  margin-bottom: 1rem;
+}
+
+.footer-icon ul li {
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.footer-icon ul li:hover {
+  transform: scale(1.2);
+  color: var(--netflix-white);
+}
+
+/* ========== Footer Columns ========== */
+.footer-data {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: space-between;
+}
+
+.footer-data > div {
+  min-width: 180px;
+}
+
+.footer-data ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-data li {
+  margin-bottom: 0.6rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.footer-data li:hover {
+  color: var(--netflix-white);
+}
+
+.footer-data li svg {
+  font-size: 0.9rem;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+/* ========== Responsive Styling ========== */
+@media screen and (max-width: 768px) {
+  .footer-data {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .footer-data > div {
+    min-width: 100%;
+  }
+}

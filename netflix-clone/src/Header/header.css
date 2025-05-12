@@ -1,0 +1,124 @@
+/* ========== Root Variables ========== */
+:root {
+  --netflix-black: #141414;
+  --netflix-white: #ffffff;
+  --netflix-red: #e50914;
+  --nav-font-size: 0.9rem;
+  --transition-speed: 0.3s;
+}
+
+/* ========== Main Header Container ========== */
+.header-outer {
+  background-color: var(--netflix-black);
+  color: var(--netflix-white);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 0.8rem 2rem;
+  z-index: 1000;
+  transition: background-color var(--transition-speed) ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* ========== Flex Container ========== */
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: auto;
+}
+
+/* ========== Shared Nav List Styling ========== */
+.header_left ul,
+.header_right ul {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ========== Left Side ========== */
+.header_left ul {
+  gap: 1.5rem;
+}
+
+.header_left ul li {
+  font-size: var(--nav-font-size);
+  cursor: pointer;
+  transition: transform var(--transition-speed);
+}
+
+.header_left ul li:hover {
+  transform: scale(1.1);
+}
+
+.header_left ul li img {
+  width: 100px;
+  object-fit: contain;
+  margin-right: 1rem;
+}
+
+/* ========== Right Side ========== */
+.header_right ul {
+  gap: 1.4rem;
+  padding-right: 1rem;
+}
+
+.header_right ul li {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: transform var(--transition-speed);
+  font-size: 1.2rem;
+}
+
+.header_right ul li:hover {
+  transform: scale(1.2);
+}
+
+.header_right ul li:hover svg {
+  color: var(--netflix-red);
+}
+
+/* ========== Responsive Design ========== */
+@media screen and (max-width: 1024px) {
+  .header-container {
+    padding: 0 1rem;
+  }
+
+  .header_left ul {
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .header_right ul {
+    gap: 1rem;
+  }
+
+  .header_left ul li {
+    font-size: 0.8rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header_left ul {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .header_right ul {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+}
