@@ -1,0 +1,142 @@
+.row {
+  margin: 0 1rem;
+  color: #fff;
+}
+
+.row-title {
+  font-size: 1.5rem;
+  margin: 1rem 0;
+  font-weight: 700; /* Bolder titles like Netflix */
+}
+
+/* Scrollable thumbnails row */
+.row-posters {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 1rem;
+  gap: clamp(8px, 1.5vw, 12px); /* Dynamic gap for better spacing */
+  scrollbar-width: none;
+  scroll-behavior: smooth; /* Smoother scrolling */
+  position: relative; /* For scroll cues */
+}
+
+/* Subtle shadow to indicate scrollability */
+.row-posters::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2rem;
+  height: 100%;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.5), transparent);
+  pointer-events: none;
+}
+
+.row-posters::-webkit-scrollbar {
+  display: none;
+}
+
+.poster-wrapper {
+  position: relative;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  width: 140px; /* Smaller base width for small screens */
+  transition: transform 0.3s ease;
+  will-change: transform; /* Optimize animation performance */
+  aspect-ratio: 2 / 3; /* Enforce Netflix-like poster ratio */
+}
+
+.row-poster {
+  width: 100%;
+  height: 100%; /* Fill aspect ratio container */
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+/* Info overlay */
+.video-info {
+  background: rgba(0, 0, 0, 0.7); /* Slightly darker for better contrast */
+  color: #fff; /* Pure white for WCAG compliance */
+  font-size: 0.75rem;
+  padding: 0.5rem;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  box-sizing: border-box;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  overflow: hidden; /* Prevent text overflow */
+  text-overflow: ellipsis; /* Truncate long text */
+  white-space: nowrap; /* Keep text single-line */
+}
+
+/* Focus and hover styles */
+@media (hover: hover) {
+  .poster-wrapper:hover {
+    transform: scale(1.1);
+    z-index: 10;
+  }
+
+  .poster-wrapper:hover .video-info {
+    opacity: 1;
+  }
+}
+
+.poster-wrapper:focus-within {
+  outline: 2px solid #fff; /* Keyboard focus indicator */
+  outline-offset: 2px;
+  transform: scale(1.1); /* Match hover effect */
+  z-index: 10;
+}
+
+.poster-wrapper:focus-within .video-info {
+  opacity: 1; /* Show overlay on focus */
+}
+
+/* Responsive breakpoints */
+@media (min-width: 400px) {
+  .poster-wrapper {
+    width: 150px;
+  }
+}
+
+@media (min-width: 480px) {
+  .poster-wrapper {
+    width: 180px;
+  }
+
+  .video-info {
+    font-size: 0.8rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .poster-wrapper {
+    width: 200px;
+  }
+
+  .row-title {
+    font-size: 1.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .poster-wrapper {
+    width: 220px;
+  }
+
+  .row-title {
+    font-size: 2rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .poster-wrapper {
+    width: 240px; /* Larger posters for wide screens */
+  }
+
+  .row-title {
+    font-size: 2.25rem;
+  }
+}

@@ -12,7 +12,7 @@ function Banner() {
       const randomIndex = Math.floor(
         Math.random() * request.data.results.length
       );
-      console.log(request);
+      // console.log(request);
       setMovie(request.data.results[randomIndex]);
     }
     fetchData();
