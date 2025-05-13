@@ -3,6 +3,7 @@
   position: relative;
   min-height: 60vh; /* Reduced for smaller screens */
   max-height: 80vh; /* Cap height for consistency */
+
   padding: clamp(30px, 5vw, 60px) clamp(20px, 4vw, 40px); /* Dynamic padding */
   display: flex;
   flex-direction: column;

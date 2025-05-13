@@ -1,7 +1,7 @@
-.row {
+/* .row {
   margin: 0 1rem;
   color: #fff;
-}
+} */
 
 .row-title {
   font-size: 1.5rem;
@@ -12,13 +12,12 @@
 /* Scrollable thumbnails row */
 .row-posters {
   display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
+  overflow-x: auto;   /* gives privilage to scroll rather than hidding*/
   padding-bottom: 1rem;
   gap: clamp(8px, 1.5vw, 12px); /* Dynamic gap for better spacing */
   scrollbar-width: none;
   scroll-behavior: smooth; /* Smoother scrolling */
-  position: relative; /* For scroll cues */
+  
 }
 
 /* Subtle shadow to indicate scrollability */
@@ -44,7 +43,7 @@
   width: 140px; /* Smaller base width for small screens */
   transition: transform 0.3s ease;
   will-change: transform; /* Optimize animation performance */
-  aspect-ratio: 2 / 3; /* Enforce Netflix-like poster ratio */
+  aspect-ratio: 2/ 3; /* Enforce Netflix-like poster ratio */
 }
 
 .row-poster {
@@ -68,7 +67,7 @@
   transition: opacity 0.3s ease;
   overflow: hidden; /* Prevent text overflow */
   text-overflow: ellipsis; /* Truncate long text */
-  white-space: nowrap; /* Keep text single-line */
+
 }
 
 /* Focus and hover styles */

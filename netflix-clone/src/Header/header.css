@@ -1,6 +1,7 @@
 /* src/components/Header/Header.css */
 .header-outer {
   background: #141414;
+  background-color: transparent;
   color: #fff;
   padding: 10px 20px;
   position: sticky;
@@ -83,8 +84,7 @@
   transform: scale(1.1); /* Slight enlargement */
 }
 
-.header_right li:active,
-.header_right li.active {
+.header_right li:active {
   color: #fff;
   background: rgba(229, 9, 20, 0.2); /* Subtle red background on click */
   border-radius: 4px;

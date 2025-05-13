@@ -19,13 +19,14 @@ function Banner() {
   }, []);
   const baseUrl1 = "https://image.tmdb.org/t/p/original"
   return (
-    <header
+    <div
       className="banner"
       style={{
         backgroundSize: "cover",
         backgroundImage: `url("${baseUrl1}${movie?.backdrop_path}")`,
         backgroundPosition: "center center",
         backgroundRepeat: "no-repeat",
+        height: "calc(90vw * 9 / 16)"
       }}
     >
       <div className="banner_contents">
@@ -43,7 +44,7 @@ function Banner() {
         </p>
       </div>
       <div className="banner_fadeBottom" />
-    </header>
+    </div>
   );
 }
 
