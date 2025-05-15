@@ -1,144 +1,105 @@
 import React, { useState, useEffect } from "react";
 import YouTube from "react-youtube";
+import movieTrailer from "movie-trailer";
 import axios from "../utils/axios";
 import "./banner.css";
 import requests from "../utils/request";
 
 function Banner() {
-  // State variables
-  const [movie, setMovie] = useState({});
-  const [youtubeKey, setYoutubeKey] = useState(null);
-  const [showPlayer, setShowPlayer] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [movie, setMovie] = useState(null);
+  const [trailerUrl, setTrailerUrl] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Base URL for movie images
-  const baseUrl = "https://image.tmdb.org/t/p/original";
-  const bannerImageUrl = requests.fetchTopRatedMovies; 
-
-  // Fetch a random movie when component loads
+  // useEffect runs once when the component mounts to fetch a random movie
   useEffect(() => {
-    const  fetchRandomMovie= async()=> {
+    // Async function to fetch top-rated movies from the API
+    const fetchMovie = async () => {
       try {
-        const response = await axios.get(bannerImageUrl);
-        const movies = response.data.results;
-
-        // Select random movie/show from results
-        const randomIndex = Math.floor(Math.random() * movies.length);
-        setMovie(movies[randomIndex]);
-      } catch (err) {
-        console.error("Error fetching banner content:", err);
-        // Fallback to trending if Netflix originals fails
-        try {
-          const fallback = await axios.get(requests.fetchTrending);
-          setMovie(
-            fallback.data.results[
-              Math.floor(Math.random() * fallback.data.results.length)
-            ]
-          );
-        } catch (fallbackError) {
-          console.error("Fallback fetch failed:", fallbackError);
-        }
+        const { data } = await axios.get(requests.fetchTopRatedMovies);
+        // Select a random movie from the results
+        const randomMovie =
+          data.results[Math.floor(Math.random() * data.results.length)];
+        // Update state with the selected movie
+        setMovie(randomMovie);
+      } catch (error) {
+        console.error("Couldn't fetch movie", error);
       }
-    }
+    };
+    fetchMovie();
+  }, []); // Empty dependency array ensures useEffect runs only once
 
-    fetchRandomMovie();
-  }, [bannerImageUrl]);
+  // Function to handle play button click and fetch the movie trailer
+  const handlePlayClick = async () => {
+    // Prevent action if no movie or already loading
+    if (!movie || loading) return;
 
-  // Fetch and play any available YouTube video - FIXED THIS FUNCTION
-  const handlePlayVideo = async () => {
-    if (!movie.id || isLoading) return;
-
-    setIsLoading(true);
+    setLoading(true);
     try {
-      // Fixed endpoint construction
-      const mediaType = movie.media_type || "movie"; // Default to movie if undefined
-      const endpoint = `/${mediaType}/${movie.id}/videos`;
-
-      const response = await axios.get(endpoint);
-    
-
-      // Find first available YouTube video
-      const youtubeVideo = response.data.results.find(
-        (video) => video.site === "YouTube" && video.type === "Trailer"
-      );
-
-      setYoutubeKey(youtubeVideo?.key || null);
-      setShowPlayer(true);
+      // Fetch trailer URL using movie title or name
+      const url = await movieTrailer(movie?.title || movie?.name || "", {
+        tmdbId: movie.id,
+        id: true,
+      });
+      // Update trailer URL state to show the YouTube video
+      setTrailerUrl(url || "");
     } catch (error) {
-      console.error("Error fetching videos:", error);
-      setYoutubeKey(null);
-      setShowPlayer(true);
+      console.error("Couldn't fetch trailer", error);
+      setTrailerUrl("");
     } finally {
-      setIsLoading(false);
+      // Clear loading state after trailer fetch completes
+      setLoading(false);
     }
   };
 
-  // YouTube player settings
-  const youtubeOpts = {
-    height: "450",
-    width: "80%",
-    playerVars: {
-      autoplay: 1,
-      modestbranding: 1,
-    },
+  // Options for the YouTube player (size and autoplay settings)
+  const opts = {
+    height: "390",
+    width: "100%",
+    playerVars: { autoplay: 1 },
   };
-
-  // Shorten long descriptions
-  const description = movie?.overview
-    ? movie.overview.length > 150
-      ? `${movie.overview.substring(0, 150)}...`
-      : movie.overview
-    : "Loading description...";
 
   return (
     <div
       className="banner"
+      // Dynamically set background image using movie backdrop
       style={{
-        backgroundImage: showPlayer
-          ? "none"
-          : `url("${baseUrl}${movie?.backdrop_path}")`,
+        backgroundImage: `url(https://image.tmdb.org/t/p/original/${movie?.backdrop_path})`,
       }}
     >
-      {showPlayer ? (
+      <div className="banner-contents">
+        <h1 className="banner-title">
+          {/* Display movie title or fallback text if not loaded */}
+          {movie?.title || movie?.name || "Loading..."}
+        </h1>
+        <div className="banner-buttons">
+          <button
+            className="banner-button play"
+            onClick={handlePlayClick}
+            disabled={loading}
+          >
+            {/* Show loading text or Play Trailer based on loading state */}
+            {loading ? "Loading..." : "Play Trailer"}
+          </button>
+          <button className="banner-button">My List</button>
+        </div>
+        <p className="banner-description">
+          {/* Truncate movie overview to 150 characters or show fallback */}
+          {movie?.overview?.substring(0, 150) || "Loading description..."}
+        </p>
+      </div>
+
+      {/* Conditionally render YouTube player if trailerUrl exists */}
+      {trailerUrl && (
         <div className="trailer-container">
-          {youtubeKey ? (
-            <div className="youtube-wrapper">
-              <YouTube videoId={youtubeKey} opts={youtubeOpts} />
-            </div>
-          ) : (
-            <div className="no-trailer">No video available for this title</div>
-          )}
+          <div className="youtube-wrapper">
+            <YouTube videoId={trailerUrl} opts={opts} />
+          </div>
           <button
             className="close-trailer-button"
-            onClick={() => {
-              setShowPlayer(false);
-              setYoutubeKey(null);
-            }}
+            onClick={() => setTrailerUrl("")}
           >
             Close
           </button>
-        </div>
-      ) : (
-        <div className="banner-contents">
-          <h1 className="banner-title">
-            {movie?.title ||
-              movie?.name ||
-              movie?.original_name ||
-              "Loading..."}
-          </h1>
-
-          <div className="banner-buttons">
-            <button
-              className="banner-button play"
-              onClick={handlePlayVideo}
-              disabled={isLoading}
-            >
-              {isLoading ? "Loading..." : "Play Video"}
-            </button>
-            <button className="banner-button">My List</button>
-          </div>
-
-          <p className="banner-description">{description}</p>
         </div>
       )}
 

@@ -1,126 +1,98 @@
-
 import React, { useState, useEffect } from "react";
 import YouTube from "react-youtube";
-import "./row.css";
+import movieTrailer from "movie-trailer";
 import axios from "../../utils/axios";
+import "./row.css";
 
 function Row({ title, fetchUrl }) {
-  const [videos, setVideos] = useState([]);
-  const [youtubeKey, setYoutubeKey] = useState(null);
-  const [selectedVideoId, setSelectedVideoId] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // State to store the list of movies fetched from the API
+  const [movies, setMovies] = useState([]);
+  // State to store the YouTube trailer ID when a movie is clicked
+  const [trailerUrl, setTrailerUrl] = useState("");
+  // State to track which movie is loading its trailer to show a loading indicator
+  const [loadingId, setLoadingId] = useState(null);
 
-  const baseImageUrl = "https://image.tmdb.org/t/p/w500";
-
+  // useEffect runs when the component mounts or fetchUrl changes, fetching movie data
   useEffect(() => {
-    const fetchVideos = async () => {
+    // Async function to fetch movies from the API
+    const fetchMovies = async () => {
       try {
-        const response = await axios.get(fetchUrl);
-        setVideos(response.data.results || []);
+        const { data } = await axios.get(fetchUrl);
+        // Update state with fetched movie data
+        setMovies(data.results);
       } catch (error) {
-        console.error("Failed to fetch videos:", error);
+        console.error("Couldn't fetch movies", error);
       }
     };
-    fetchVideos();
-  }, [fetchUrl]);
+    fetchMovies();
+  }, [fetchUrl]); // fetchUrl as dependency ensures useEffect runs when it changes
 
-  const handleVideoClick = async (video) => {
-    if (isLoading) return;
-    if (selectedVideoId === video.id && youtubeKey) {
-      setYoutubeKey(null);
-      setSelectedVideoId(null);
-      return;
-    }
+  // Function to handle movie poster click and fetch its trailer
+  const handleMovieClick = async (movie) => {
+    // Prevent multiple clicks on the same movie while loading
+    if (loadingId === movie.id) return;
 
-    setIsLoading(true);
+    setLoadingId(movie.id);
     try {
-      const mediaType = video.media_type || "movie";
-      const response = await axios.get(`/${mediaType}/${video.id}/videos`);
-
-      // Row-specific: Allow any YouTube video (not just trailers)
-      const youtubeVideo = response.data.results.find(
-        (v) => v.site === "YouTube" && v.type === "Trailer"
-      );
-
-      setYoutubeKey(youtubeVideo?.key || null);
-      setSelectedVideoId(video.id);
+      // Fetch trailer URL using movie title or name
+      const url = await movieTrailer(movie?.title || movie?.name || "", {
+        tmdbId: movie.id,
+        id: true,
+      });
+      // Update trailer URL state to show the YouTube video
+      setTrailerUrl(url || "");
     } catch (error) {
-      console.error("Failed to fetch video:", error);
-      setYoutubeKey(null);
-      setSelectedVideoId(video.id);
+      console.error("Couldn't fetch trailer", error);
+      setTrailerUrl("");
     } finally {
-      setIsLoading(false);
+      // Clear loading state after trailer fetch completes
+      setLoadingId(null);
     }
   };
 
-  const youtubeOpts = {
+  // Options for the YouTube player (size and autoplay settings)
+  const opts = {
     height: "300",
-    width: "80%",
-    playerVars: {
-      autoplay: 1,
-      modestbranding: 1,
-    },
+    width: "100%",
+    playerVars: { autoplay: 1 },
   };
 
   return (
     <div className="row">
       <h2 className="row-title">{title}</h2>
+
       <div className="row-posters">
-        {videos.map((video) => (
-          <div key={video.id} className="poster-wrapper">
-            {selectedVideoId === video.id ? (
-              <div className="trailer-container">
-                {youtubeKey ? (
-                  <>
-                    <YouTube videoId={youtubeKey} opts={youtubeOpts} />
-                    <button
-                      className="close-trailer-button"
-                      onClick={() => {
-                        setYoutubeKey(null);
-                        setSelectedVideoId(null);
-                      }}
-                    >
-                      Close
-                    </button>
-                  </>
-                ) : (
-                  <div className="no-trailer">
-                    No video available
-                    <button
-                      className="close-trailer-button"
-                      onClick={() => setSelectedVideoId(null)}
-                    >
-                      Close
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="poster-content">
-                <img
-                  src={`${baseImageUrl}${video.poster_path || video.backdrop_path}`}
-                  alt={video.name || video.title}
-                  className="row-poster"
-                  onClick={() => handleVideoClick(video)}
-                />
-                <div className="video-info">
-                  <h3>{video.name || video.title}</h3>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleVideoClick(video);
-                    }}
-                  >
-                    {isLoading && selectedVideoId === video.id
-                      ? "Loading..."
-                      : "Play Video"}
-                  </button>
-                </div>
-              </div>
-            )}
+        {movies.map((movie) => (
+          // Use unique key for each movie to help React optimize rendering
+          <div key={movie.id} className="poster-wrapper">
+            <div className="poster-container">
+              <img
+                src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
+                alt={movie.title}
+                className="row-poster"
+                // Trigger trailer fetch on click
+                onClick={() => handleMovieClick(movie)}
+              />
+              {loadingId === movie.id && (
+                <div className="video-info">Loading...</div>
+              )}
+            </div>
           </div>
         ))}
       </div>
+
+      {/* Conditionally render YouTube player if trailerUrl exists */}
+      {trailerUrl && (
+        <div className="trailer-container">
+          <YouTube videoId={trailerUrl} opts={opts} />
+          <button
+            className="close-trailer-button"
+            onClick={() => setTrailerUrl("")}
+          >
+            Close
+          </button>
+        </div>
+      )}
     </div>
   );
 }
