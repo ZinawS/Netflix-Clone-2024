@@ -2,55 +2,63 @@ import React, { useState, useEffect } from "react";
 import YouTube from "react-youtube";
 import movieTrailer from "movie-trailer";
 import axios from "../../utils/axios";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import "react-lazy-load-image-component/src/effects/blur.css";
 import "./row.css";
 
-function Row({ title, fetchUrl }) {
-  // State to store the list of movies fetched from the API
+function Row({ title, fetchUrl, isFirstRow }) {
   const [movies, setMovies] = useState([]);
-  // State to store the YouTube trailer ID when a movie is clicked
   const [trailerUrl, setTrailerUrl] = useState("");
-  // State to track which movie is loading its trailer to show a loading indicator
   const [loadingId, setLoadingId] = useState(null);
+  const [errorImages, setErrorImages] = useState({});
 
-  // useEffect runs when the component mounts or fetchUrl changes, fetching movie data
   useEffect(() => {
-    // Async function to fetch movies from the API
     const fetchMovies = async () => {
       try {
         const { data } = await axios.get(fetchUrl);
-        // Update state with fetched movie data
         setMovies(data.results);
       } catch (error) {
         console.error("Couldn't fetch movies", error);
       }
     };
     fetchMovies();
-  }, [fetchUrl]); // fetchUrl as dependency ensures useEffect runs when it changes
+  }, [fetchUrl]);
 
-  // Function to handle movie poster click and fetch its trailer
   const handleMovieClick = async (movie) => {
-    // Prevent multiple clicks on the same movie while loading
     if (loadingId === movie.id) return;
 
     setLoadingId(movie.id);
     try {
-      // Fetch trailer URL using movie title or name
       const url = await movieTrailer(movie?.title || movie?.name || "", {
         tmdbId: movie.id,
         id: true,
       });
-      // Update trailer URL state to show the YouTube video
       setTrailerUrl(url || "");
     } catch (error) {
       console.error("Couldn't fetch trailer", error);
       setTrailerUrl("");
     } finally {
-      // Clear loading state after trailer fetch completes
       setLoadingId(null);
     }
   };
 
-  // Options for the YouTube player (size and autoplay settings)
+  const handleImageError = (movieId) => {
+    setErrorImages((prev) => ({ ...prev, [movieId]: true }));
+  };
+
+  const getImageUrl = (movie) => {
+    // Try poster first
+    if (movie.poster_path && !errorImages[movie.id]) {
+      return `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+    }
+    // Then try backdrop
+    if (movie.backdrop_path) {
+      return `https://image.tmdb.org/t/p/w500${movie.backdrop_path}`;
+    }
+    // Final fallback to a sophisticated placeholder
+    return null;
+  };
+
   const opts = {
     height: "300",
     width: "100%",
@@ -58,30 +66,46 @@ function Row({ title, fetchUrl }) {
   };
 
   return (
-    <div className="row">
+    <div className={`row ${isFirstRow ? "first-row" : ""}`}>
       <h2 className="row-title">{title}</h2>
 
       <div className="row-posters">
-        {movies.map((movie) => (
-          // Use unique key for each movie to help React optimize rendering
-          <div key={movie.id} className="poster-wrapper">
-            <div className="poster-container">
-              <img
-                src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
-                alt={movie.title}
-                className="row-poster"
-                // Trigger trailer fetch on click
-                onClick={() => handleMovieClick(movie)}
-              />
-              {loadingId === movie.id && (
-                <div className="video-info">Loading...</div>
-              )}
+        {movies?.map((movie) => {
+          const imageUrl = getImageUrl(movie);
+          return (
+            <div
+              key={movie.id}
+              className={`poster-wrapper ${isFirstRow ? "" : "square-poster"}`}
+            >
+              <div className="poster-container">
+                {imageUrl ? (
+                  <LazyLoadImage
+                    src={imageUrl}
+                    alt={movie.title || movie.name}
+                    className={`row-poster ${isFirstRow ? "" : "square-image"}`}
+                    onClick={() => handleMovieClick(movie)}
+                    effect="blur"
+                    onError={() => handleImageError(movie.id)}
+                    threshold={100}
+                  />
+                ) : (
+                  <div className="placeholder-poster">
+                    <div className="placeholder-content">
+                      <span className="placeholder-text">
+                        {movie.title || movie.name || "No Image"}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {loadingId === movie.id && (
+                  <div className="video-info">Loading...</div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Conditionally render YouTube player if trailerUrl exists */}
       {trailerUrl && (
         <div className="trailer-container">
           <YouTube videoId={trailerUrl} opts={opts} />

@@ -6,7 +6,7 @@ function Home() {
   return (
     <div>
       
-      <Row title="Trending Now" fetchUrl={requests.fetchTrending} />
+      <Row title="Trending Now" fetchUrl={requests.fetchTrending} isFirstRow="true" />
       <Row
         title="Netflix Originals"
         fetchUrl={requests.fetchNetflixOriginals}
