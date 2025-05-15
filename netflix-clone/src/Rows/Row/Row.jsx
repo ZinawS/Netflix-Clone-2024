@@ -1,15 +1,14 @@
-import React, { useEffect, useState, useRef } from "react";
+
+import React, { useState, useEffect } from "react";
 import YouTube from "react-youtube";
 import "./row.css";
 import axios from "../../utils/axios";
 
 function Row({ title, fetchUrl }) {
   const [videos, setVideos] = useState([]);
-  const [trailerId, setTrailerId] = useState(null);
+  const [youtubeKey, setYoutubeKey] = useState(null);
   const [selectedVideoId, setSelectedVideoId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const playerRef = useRef(null);
-  const trailerContainerRef = useRef(null);
 
   const baseImageUrl = "https://image.tmdb.org/t/p/w500";
 
@@ -19,70 +18,48 @@ function Row({ title, fetchUrl }) {
         const response = await axios.get(fetchUrl);
         setVideos(response.data.results || []);
       } catch (error) {
-        console.error("Failed to fetch videos:", error.message);
+        console.error("Failed to fetch videos:", error);
       }
     };
     fetchVideos();
   }, [fetchUrl]);
 
-  const fetchTrailer = async (videoId) => {
+  const handleVideoClick = async (video) => {
+    if (isLoading) return;
+    if (selectedVideoId === video.id && youtubeKey) {
+      setYoutubeKey(null);
+      setSelectedVideoId(null);
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const response = await axios.get(`/movie/${videoId}/videos`);
-      const trailer = response.data.results.find(
-        (vid) => vid.type === "Trailer" && vid.site === "YouTube"
+      const mediaType = video.media_type || "movie";
+      const response = await axios.get(`/${mediaType}/${video.id}/videos`);
+
+      // Row-specific: Allow any YouTube video (not just trailers)
+      const youtubeVideo = response.data.results.find(
+        (v) => v.site === "YouTube" && v.type === "Trailer"
       );
-      setTrailerId(trailer?.key || null);
-      setSelectedVideoId(videoId);
+
+      setYoutubeKey(youtubeVideo?.key || null);
+      setSelectedVideoId(video.id);
     } catch (error) {
-      console.error(`Failed to fetch trailer:`, error.message);
-      setTrailerId(null);
-      setSelectedVideoId(videoId);
+      console.error("Failed to fetch video:", error);
+      setYoutubeKey(null);
+      setSelectedVideoId(video.id);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleTrailerToggle = (videoId) => {
-    if (isLoading) return;
-    if (selectedVideoId === videoId && trailerId) {
-      setTrailerId(null);
-      setSelectedVideoId(null);
-    } else {
-      fetchTrailer(videoId);
-    }
-  };
-
-  useEffect(() => {
-    const handleOutsideClick = (e) => {
-      if (trailerContainerRef.current?.contains(e.target)) return;
-      if (selectedVideoId) {
-        setTrailerId(null);
-        setSelectedVideoId(null);
-      }
-    };
-    document.addEventListener("click", handleOutsideClick);
-    return () => document.removeEventListener("click", handleOutsideClick);
-  }, [selectedVideoId]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) =>
-        !entry.isIntersecting &&
-        selectedVideoId &&
-        trailerId &&
-        setSelectedVideoId(null),
-      { threshold: 0.1 }
-    );
-    if (trailerContainerRef.current)
-      observer.observe(trailerContainerRef.current);
-    return () => observer.disconnect();
-  }, [selectedVideoId, trailerId]);
-
   const youtubeOpts = {
     height: "300",
     width: "80%",
-    playerVars: { autoplay: 1 },
+    playerVars: {
+      autoplay: 1,
+      modestbranding: 1,
+    },
   };
 
   return (
@@ -91,70 +68,56 @@ function Row({ title, fetchUrl }) {
       <div className="row-posters">
         {videos.map((video) => (
           <div key={video.id} className="poster-wrapper">
-            <div
-              className="poster-container"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {selectedVideoId === video.id ? (
-                <div className="trailer-container" ref={trailerContainerRef}>
-                  {trailerId ? (
-                    <>
-                      <YouTube
-                        videoId={trailerId}
-                        opts={youtubeOpts}
-                        onReady={(e) => {
-                          playerRef.current = e.target;
-                          e.target.playVideo();
-                        }}
-                        onError={(e) =>
-                          console.error("YouTube player error:", e)
-                        }
-                      />
-                      <button
-                        className="close-trailer-button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleTrailerToggle(video.id);
-                        }}
-                      >
-                        Close
-                      </button>
-                    </>
-                  ) : (
-                    <div
-                      className="no-trailer"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      No trailer available
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <img
-                    src={`${baseImageUrl}${video.poster_path || video.backdrop_path}`}
-                    alt={video.name || video.title}
-                    className="row-poster"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleTrailerToggle(video.id);
-                    }}
-                  />
-                  <div className="video-info">
-                    <h3>{video.name || video.title}</h3>
-                    <p>{video.overview?.slice(0, 80)}...</p>
+            {selectedVideoId === video.id ? (
+              <div className="trailer-container">
+                {youtubeKey ? (
+                  <>
+                    <YouTube videoId={youtubeKey} opts={youtubeOpts} />
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleTrailerToggle(video.id);
+                      className="close-trailer-button"
+                      onClick={() => {
+                        setYoutubeKey(null);
+                        setSelectedVideoId(null);
                       }}
                     >
-                      Play Trailer
+                      Close
+                    </button>
+                  </>
+                ) : (
+                  <div className="no-trailer">
+                    No video available
+                    <button
+                      className="close-trailer-button"
+                      onClick={() => setSelectedVideoId(null)}
+                    >
+                      Close
                     </button>
                   </div>
-                </>
-              )}
-            </div>
+                )}
+              </div>
+            ) : (
+              <div className="poster-content">
+                <img
+                  src={`${baseImageUrl}${video.poster_path || video.backdrop_path}`}
+                  alt={video.name || video.title}
+                  className="row-poster"
+                  onClick={() => handleVideoClick(video)}
+                />
+                <div className="video-info">
+                  <h3>{video.name || video.title}</h3>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleVideoClick(video);
+                    }}
+                  >
+                    {isLoading && selectedVideoId === video.id
+                      ? "Loading..."
+                      : "Play Video"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
