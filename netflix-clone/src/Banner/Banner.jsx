@@ -42,7 +42,7 @@ function Banner() {
     }
 
     fetchRandomMovie();
-  }, []);
+  }, [bannerImageUrl]);
 
   // Fetch and play any available YouTube video - FIXED THIS FUNCTION
   const handlePlayVideo = async () => {
