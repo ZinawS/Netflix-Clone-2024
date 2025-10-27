@@ -1,7 +1,7 @@
 // src/components/Header/Header.jsx
 import React, { useState } from "react";
 import netflixLogo from "./images/Netflix_Logo.png"; // Adjust path
-import "./Header.css";
+import "./header.css";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import SearchIcon from "@mui/icons-material/Search";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
