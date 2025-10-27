@@ -1,6 +1,6 @@
 // src/components/Footer/Footer.jsx
 import React from "react";
-import "./Footer.css";
+import "./footer.css";
 import FacebookRoundedIcon from "@mui/icons-material/FacebookRounded";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 import InstagramIcon from "@mui/icons-material/Instagram";
